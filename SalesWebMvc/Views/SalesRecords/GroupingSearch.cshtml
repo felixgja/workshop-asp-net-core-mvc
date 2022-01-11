@@ -1,6 +1,9 @@
-﻿@model Dictionary<SalesWebMvc.Models.Department, List<SalesWebMvc.Models.SalesRecord>>
+﻿@model IEnumerable<IGrouping<Department, SalesRecord>>
+
 @{
     ViewData["Title"] = "Grouping Search";
+    DateTime minDate = DateTime.Parse(ViewData["minDate"] as string);
+    DateTime maxDate = DateTime.Parse(ViewData["maxDate"] as string);
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -11,11 +14,11 @@
             <div class="form-group">
                 <div class="form-group">
                     <label for="minDate">Min Date</label>
-                    <input type="date" class="form-control" name="minDate" value=@ViewData["minDate"] />
+                    <input type="date" class="form-control" name="minDate" value=@ViewData["minDate"]>
                 </div>
                 <div class="form-group">
                     <label for="maxDate">Max Date</label>
-                    <input type="date" class="form-control" name="maxDate" value=@ViewData["maxDate"] />
+                    <input type="date" class="form-control" name="maxDate" value=@ViewData["maxDate"]>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary">Filter</button>
@@ -23,48 +26,42 @@
     </div>
 </nav>
 
-@foreach (var department in Model.Keys)
+@foreach (var departmentGroup in Model)
 {
     <div class="panel panel-primary">
         <div class="panel-heading">
-            <h3 class="panel-title">Department @department.Name Total sales = @Model[department].Sum(obj => obj.Amount).ToString("F2")</h3>
+            <h3 class="panel-title">Department @departmentGroup.Key.Name, Total sales = @departmentGroup.Key.TotalSales(minDate, maxDate).ToString("F2")</h3>
         </div>
         <div class="panel-body">
             <table class="table table-striped table-hover">
                 <thead>
                     <tr class="success">
                         <th>
-                            @Html.DisplayNameFor(model => model[department].First().Id)
+                            Date
                         </th>
                         <th>
-                            @Html.DisplayNameFor(model => model[department].First().Date)
+                            Amount
                         </th>
                         <th>
-                            @Html.DisplayNameFor(model => model[department].First().Seller)
+                            Seller
                         </th>
                         <th>
-                            @Html.DisplayNameFor(model => model[department].First().Amount)
-                        </th>
-                        <th>
-                            @Html.DisplayNameFor(model => model[department].First().Status)
+                            Status
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model[department])
+                    @foreach (var item in departmentGroup)
                     {
                         <tr>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Id)
-                            </td>
                             <td>
                                 @Html.DisplayFor(modelItem => item.Date)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Seller.Name)
+                                @Html.DisplayFor(modelItem => item.Amount)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Amount)
+                                @Html.DisplayFor(modelItem => item.Seller.Name)
                             </td>
                             <td>
                                 @Html.DisplayFor(modelItem => item.Status)

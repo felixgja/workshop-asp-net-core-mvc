@@ -36,29 +36,24 @@ namespace SalesWebMvc.Services
                 .ToListAsync();
         }
 
-        public Dictionary<Department, List<SalesRecord>> FindByDateGrouping(DateTime? minDate, DateTime? maxDate)
+        public async Task<List<IGrouping<Department, SalesRecord>>> FindByDateGroupingAsync(DateTime? minDate, DateTime? maxDate)
         {
-            var departments = _context.Department.ToList();
-            var sales = this.FindByDateAsync(minDate, maxDate);
-            var result = new Dictionary<Department, List<SalesRecord>>();
-
-            foreach (var department in departments)
+            var result = from obj in _context.SalesRecord select obj;
+            if (minDate.HasValue)
             {
-                foreach (var sale in sales.Result)
-                {
-                    if (!result.ContainsKey(department))
-                    {
-                        result.Add(department, new List<SalesRecord>());
-                    }
-                    if (sale.Seller.Department == department)
-                    {
-                        result[department].Add(sale);
-                    }
-                }
+                result = result.Where(x => x.Date >= minDate.Value);
+            }
+            if (maxDate.HasValue)
+            {
+                result = result.Where(x => x.Date <= maxDate.Value);
             }
 
-            return result;
-
+            return await result
+                .Include(x => x.Seller)
+                .Include(x => x.Seller.Department)
+                .OrderByDescending(x => x.Date)
+                .GroupBy(x => x.Seller.Department)
+                .ToListAsync();
         }
     }
 }
