@@ -35,5 +35,30 @@ namespace SalesWebMvc.Services
                 .OrderByDescending(x => x.Date)
                 .ToListAsync();
         }
+
+        public Dictionary<Department, List<SalesRecord>> FindByDateGrouping(DateTime? minDate, DateTime? maxDate)
+        {
+            var departments = _context.Department.ToList();
+            var sales = this.FindByDateAsync(minDate, maxDate);
+            var result = new Dictionary<Department, List<SalesRecord>>();
+
+            foreach (var department in departments)
+            {
+                foreach (var sale in sales.Result)
+                {
+                    if (!result.ContainsKey(department))
+                    {
+                        result.Add(department, new List<SalesRecord>());
+                    }
+                    if (sale.Seller.Department == department)
+                    {
+                        result[department].Add(sale);
+                    }
+                }
+            }
+
+            return result;
+
+        }
     }
 }
